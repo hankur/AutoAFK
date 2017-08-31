@@ -3,6 +3,7 @@ package me.prunt.autoafk;
 import java.util.HashMap;
 import java.util.Set;
 
+import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -30,8 +31,6 @@ import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import net.md_5.bungee.api.ChatColor;
 
 /**
  * @author Prunt
