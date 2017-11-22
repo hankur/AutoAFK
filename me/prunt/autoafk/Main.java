@@ -370,7 +370,7 @@ public class Main extends JavaPlugin implements Listener {
     void broadcast(Player p, String type) {
 	// Doesn't broadcast anything when player is vanished
 	if (isVanished(p)) {
-
+            return;
 	}
 
 	// Prepares the message
