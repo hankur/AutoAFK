@@ -30,6 +30,7 @@ import org.bukkit.event.player.PlayerToggleFlightEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -268,7 +269,7 @@ public class Main extends JavaPlugin implements Listener {
 	    oldPlayerListNames.put(p, p.getPlayerListName());
 
 	    // Adds prefix in front of the tablist name
-	    p.setPlayerListName("[AFK] " + p.getName());
+	    p.setPlayerListName(getMessage("tablist.prefix") + p.getName());
 	}
 
 	// Broadcasts the message
@@ -367,6 +368,11 @@ public class Main extends JavaPlugin implements Listener {
 
     // Broadcasts specified message
     void broadcast(Player p, String type) {
+	// Doesn't broadcast anything when player is vanished
+	if (isVanished(p)) {
+
+	}
+
 	// Prepares the message
 	String msg = getMessage(type).replaceAll("%player%", p.getName());
 
@@ -385,6 +391,17 @@ public class Main extends JavaPlugin implements Listener {
     void resetTime(Player p) {
 	// Reset player's minutes
 	afkMinutes.put(p, 0);
+    }
+
+    // https://www.spigotmc.org/resources/supervanish-be-invisible.1331/
+    // This code is supported by SuperVanish, PremiumVanish, VanishNoPacket and a
+    // few more vanish plugins.
+    private boolean isVanished(Player player) {
+	for (MetadataValue meta : player.getMetadata("vanished")) {
+	    if (meta.asBoolean())
+		return true;
+	}
+	return false;
     }
 
     @EventHandler
