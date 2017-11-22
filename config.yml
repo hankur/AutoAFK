@@ -50,6 +50,8 @@ kick:
 tablist:
     # By default, tablist prefix is enabled
     enabled: true
+    # Prefix itself
+    prefix: '[AFK] '
 # Options for AFK particles - ParticleAPI REQUIRED FOR 1.8
 particles:
     # By default, AFK particles are enabled
