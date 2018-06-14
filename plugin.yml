@@ -1,6 +1,6 @@
 name: AutoAFK
-version: 2.2
-description: Very simple plugin that implements AFK mode!
+version: 2.3
+description: Very simple, but configurable plugin that implements AFK mode!
 author: Prunt
 website: https://www.spigotmc.org/resources/autoafk.11296/
 main: me.prunt.autoafk.Main
@@ -11,18 +11,27 @@ commands:
     description: Allows player to toggle thyselve's AFK mode.
     permission: autoafk.afk
   autoafk:
-    description: Reloads the AutoAFK config file.
-    permission: autoafk.reload
+    description: AutoAFK main command.
+    permission: autoafk.main
 permissions:
   autoafk.afk:
     description: Allows the usage of /afk command.
     default: true
-  autoafk.reload:
+  autoafk.main:
     description: Allows the usage of /autoafk command.
     default: op
   autoafk.exempt:
     description: Doesn't put you automatically to AFK mode.
     default: op
+  autoafk.teleportexempt:
+    description: Doesn't teleport you automatically for AFK.
+    default: op
   autoafk.kickexempt:
     description: Doesn't kick you automatically for AFK.
     default: op
+  autoafk.protection.move:
+    description: Doesn't protect you from moving.
+    default: false
+  autoafk.protection.damage:
+    description: Doesn't protect you from damage.
+    default: false
