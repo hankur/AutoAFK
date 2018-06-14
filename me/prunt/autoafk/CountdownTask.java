@@ -9,12 +9,14 @@ public class CountdownTask implements Runnable {
     private Main main;
     private int id;
     private int i;
+    private String t;
     private Player p;
 
-    public CountdownTask(Main main, Player p) {
+    public CountdownTask(Main main, Player p, String type) {
 	this.main = main;
 	this.p = p;
 	this.i = 5;
+	this.t = type;
     }
 
     public int getId() {
@@ -27,7 +29,7 @@ public class CountdownTask implements Runnable {
 
     @Override
     public void run() {
-	// when it's time to put into afk
+	// when it's time to put into afk or kick
 	if (this.i == 0) {
 	    // title and sound
 	    if (main.getServer().getVersion().contains("1.10") || main.getServer().getVersion().contains("1.9")
@@ -39,8 +41,13 @@ public class CountdownTask implements Runnable {
 	    }
 	    p.playSound(p.getLocation(), Sound.valueOf(main.getConfig().getString("countdown.sound")), 1, 1);
 
-	    // put into afk
-	    main.addAFK(p);
+	    if (this.t == "afk") {
+		// put into afk
+		main.addAFK(p);
+	    } else if (this.t == "kick") {
+		// Kick from server
+		main.kick(p);
+	    }
 
 	    // Cancel task
 	    main.getServer().getScheduler().cancelTask(getId());
@@ -50,10 +57,11 @@ public class CountdownTask implements Runnable {
 		    || main.getServer().getVersion().contains("1.8")) {
 		TitleAPI.sendTitle(p, 0, 40, 20,
 			main.getMessage("countdown.title").replaceAll("%count%", String.valueOf(i)),
-			main.getMessage("countdown.subtitle").replaceAll("%count%", String.valueOf(i)));
+			main.getMessage("countdown.subtitle." + this.t).replaceAll("%count%", String.valueOf(i)));
 	    } else {
 		p.sendTitle(main.getMessage("countdown.title").replaceAll("%count%", String.valueOf(i)),
-			main.getMessage("countdown.subtitle").replaceAll("%count%", String.valueOf(i)), 0, 21, 0);
+			main.getMessage("countdown.subtitle." + this.t).replaceAll("%count%", String.valueOf(i)), 0, 21,
+			0);
 	    }
 	    p.playSound(p.getLocation(), Sound.valueOf(main.getConfig().getString("countdown.sound")), 1, 1);
 

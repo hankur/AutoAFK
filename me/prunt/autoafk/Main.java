@@ -4,11 +4,13 @@ import java.util.HashMap;
 import java.util.Set;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerBedEnterEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
@@ -32,11 +34,14 @@ import org.bukkit.event.player.PlayerToggleSprintEvent;
 import org.bukkit.event.player.PlayerUnleashEntityEvent;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 
 /**
  * @author Prunt
  *
  */
+@SuppressWarnings("deprecation")
 public class Main extends JavaPlugin implements Listener {
     // Stores how many minutes the player has been inactive
     HashMap<Player, Integer> afkMinutes = new HashMap<>();
@@ -75,6 +80,10 @@ public class Main extends JavaPlugin implements Listener {
 	    public void run() {
 		// Loops through all players
 		for (Player p : getServer().getOnlinePlayers()) {
+		    // World check
+		    if (getConfig().getStringList("disabled-worlds").contains(p.getWorld().getName()))
+			continue;
+
 		    // Adds a minute to player's count
 		    addMinute(p);
 
@@ -83,24 +92,39 @@ public class Main extends JavaPlugin implements Listener {
 
 		    // If player is already in AFK mode
 		    if (afkList.containsKey(p)) {
-
 			if (debug)
 			    System.out.println("1 " + p.getName());
 
+			// if teleport is enabled and player can be teleported
+			if (!p.hasPermission("autoafk.teleportexempt") && getConfig().getBoolean("teleport.enabled")) {
+			    if (debug)
+				System.out.println("8 " + p.getName() + " " + getTime(p) + " " + getTeleportTime(p));
+
+			    // if it's time to kick
+			    if (getTime(p) == getTeleportTime(p)) {
+				// Teleports player to defined location
+				teleport(p);
+			    }
+			}
+
 			// if kick mode is enabled and player can be kicked
-			if (!(p.hasPermission("autoafk.kickexempt")) && getConfig().getBoolean("kick.enabled")) {
+			if (!p.hasPermission("autoafk.kickexempt") && getConfig().getBoolean("kick.enabled")) {
+			    // If the kick.onlywhenfull option is true and server isn't full
+			    if (getConfig().getBoolean("kick.onlywhenfull")
+				    && getServer().getOnlinePlayers().size() != getServer().getMaxPlayers())
+				// Abort kicking
+				continue;
 
 			    if (debug)
-				System.out.println("7 " + p.getName());
+				System.out.println("7 " + p.getName() + " " + getTime(p) + " " + getKickTime(p));
 
 			    // if it's time to kick
 			    if (getTime(p) == getKickTime(p)) {
-				// Puts player into AFK mode
-				kick(p);
+				// Kicks the player from server
+				autoKick(p);
 			    }
 			}
 		    } else { // if not in afk
-
 			if (debug)
 			    System.out.println("2 " + p.getName());
 
@@ -109,7 +133,7 @@ public class Main extends JavaPlugin implements Listener {
 			if (getConfig().getBoolean("auto.enabled") && !(p.hasPermission("autoafk.exempt"))) {
 
 			    if (debug)
-				System.out.println("5 " + p.getName());
+				System.out.println("5 " + p.getName() + " " + getTime(p) + " " + getAutoTime(p));
 
 			    // if it's time to put info afk
 			    if (getTime(p) == getAutoTime(p)) {
@@ -127,16 +151,23 @@ public class Main extends JavaPlugin implements Listener {
 	}, 1200, 1200);
     }
 
-    private void kick(Player p) {
-	// If the kick.onlywhenfull option is true
-	if (getConfig().getBoolean("kick.onlywhenfull")) {
-	    // If the server isn't full
-	    if (getServer().getOnlinePlayers().size() != getServer().getMaxPlayers()) {
-		// Abort kicking
-		return;
-	    }
-	}
+    private void teleport(Player p) {
+	if (debug)
+	    System.out.println("9 " + p.getName());
 
+	// Define the location parameters
+	double x = getConfig().getDouble("teleport.x");
+	double y = getConfig().getDouble("teleport.y");
+	double z = getConfig().getDouble("teleport.z");
+	float yaw = (float) getConfig().getDouble("teleport.yaw");
+	float pitch = (float) getConfig().getDouble("teleport.pitch");
+	String world = getConfig().getString("teleport.world");
+
+	// Teleport the player
+	p.teleport(new Location(getServer().getWorld(world), x, y, z, yaw, pitch));
+    }
+
+    void kick(Player p) {
 	if (debug)
 	    System.out.println("3 " + p.getName());
 
@@ -160,6 +191,10 @@ public class Main extends JavaPlugin implements Listener {
     public void onCommandPreprocess(PlayerCommandPreprocessEvent e) {
 	Player p = e.getPlayer();
 
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(p.getWorld().getName()))
+	    return;
+
 	if (e.getMessage().toLowerCase().startsWith("/afk")) {
 	    if (getConfig().getBoolean("anti-spam.enabled")) {
 		if (lastUsed.containsKey(p)) {
@@ -181,7 +216,8 @@ public class Main extends JavaPlugin implements Listener {
 	    // If this listener is enabled
 	    if (getConfig().getBoolean("listeners.commands"))
 		// Removes player from AFK
-		delAFK(e.getPlayer());
+		if (afkList.containsKey(e.getPlayer()))
+		    delAFK(e.getPlayer());
 	}
     }
 
@@ -197,6 +233,10 @@ public class Main extends JavaPlugin implements Listener {
 
 	    Player p = (Player) sender;
 
+	    // World check
+	    if (getConfig().getStringList("disabled-worlds").contains(p.getWorld().getName()))
+		return true;
+
 	    // If the player is in AFK mode
 	    if (afkList.containsKey(p)) {
 		// Then removes the AFK mode
@@ -211,6 +251,30 @@ public class Main extends JavaPlugin implements Listener {
 		addAFK(p);
 	    }
 	} else if (cmd.getName().equalsIgnoreCase("autoafk")) {
+	    if (args.length == 1) {
+		if (args[0].equalsIgnoreCase("set") && (sender instanceof Player)) {
+		    Player p = (Player) sender;
+
+		    // World check
+		    if (getConfig().getStringList("disabled-worlds").contains(p.getWorld().getName()))
+			return true;
+
+		    // Save location to config
+		    getConfig().set("teleport.x", p.getLocation().getX());
+		    getConfig().set("teleport.y", p.getLocation().getY());
+		    getConfig().set("teleport.z", p.getLocation().getZ());
+		    getConfig().set("teleport.yaw", p.getLocation().getYaw());
+		    getConfig().set("teleport.pitch", p.getLocation().getPitch());
+		    getConfig().set("teleport.world", p.getLocation().getWorld().getName());
+		    saveConfig();
+
+		    // Sends confirmation message
+		    sender.sendMessage(getMessage("messages.location-set"));
+
+		    return true;
+		}
+	    }
+
 	    // Generates new config if it doesn't exist
 	    saveDefaultConfig();
 
@@ -248,11 +312,24 @@ public class Main extends JavaPlugin implements Listener {
 
     // Starts AFK countdown
     void autoAFK(Player p) {
-	// if countdown is enabled and server version is above 1.8
-	// TODO should be working with 1.8 as well (TitleAPI)
-	if (getConfig().getBoolean("countdown.enabled") && !getServer().getVersion().contains("1.8")) {
+	// if countdown is enabled
+	if (getConfig().getBoolean("countdown.enabled")) {
 	    // initiate countdown
-	    CountdownTask task = new CountdownTask(this, p);
+	    CountdownTask task = new CountdownTask(this, p, "afk");
+	    task.setId(getServer().getScheduler().scheduleSyncRepeatingTask(this, task, 0, 20));
+
+	    countList.put(p, task);
+	} else {
+	    addAFK(p);
+	}
+    }
+
+    // Starts kick countdown
+    void autoKick(Player p) {
+	// if countdown is enabled
+	if (getConfig().getBoolean("countdown.enabled")) {
+	    // initiate countdown
+	    CountdownTask task = new CountdownTask(this, p, "kick");
 	    task.setId(getServer().getScheduler().scheduleSyncRepeatingTask(this, task, 0, 20));
 
 	    countList.put(p, task);
@@ -272,13 +349,32 @@ public class Main extends JavaPlugin implements Listener {
 	    p.setPlayerListName(getMessage("tablist.prefix") + p.getName());
 	}
 
+	// When scoreboard tag changing is enabled
+	if (getConfig().getBoolean("playertag.enabled")) {
+	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Team tag = tags.getTeam(p.getName());
+	    if (tag == null)
+		tag = tags.registerNewTeam(p.getName());
+	    tag.setPrefix(getMessage("playertag.prefix"));
+	    tag.addEntry(p.getName());
+
+	    for (Player players : getServer().getOnlinePlayers()) {
+		players.setScoreboard(tags);
+	    }
+	}
+
 	// Broadcasts the message
 	broadcast(p, "messages.afk-on");
 
-	// initiate particles when server version is above 1.8
-	// TODO should be working with 1.8 as well (ParticleAPI)
+	// If damage protection is enabled
+	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+		&& !getServer().getVersion().contains("1.8"))
+	    // Makes player invulnerable
+	    p.setInvulnerable(true);
+
+	// initiate particles
 	ParticleTask task = null;
-	if (getConfig().getBoolean("particles.enabled") && !getServer().getVersion().contains("1.8")) {
+	if (getConfig().getBoolean("particles.enabled")) {
 	    task = new ParticleTask(this, p);
 	    task.setId(getServer().getScheduler().scheduleSyncRepeatingTask(this, task, 0, 20));
 	}
@@ -297,6 +393,24 @@ public class Main extends JavaPlugin implements Listener {
 	    // Broadcasts the message
 	    broadcast(p, "messages.afk-off");
 	}
+
+	// When scoreboard tag changing is enabled
+	if (getConfig().getBoolean("playertag.enabled")) {
+	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Team tag = tags.getTeam(p.getName());
+	    tag.setPrefix("");
+	    tag.removeEntry(p.getName());
+
+	    for (Player players : getServer().getOnlinePlayers()) {
+		players.setScoreboard(tags);
+	    }
+	}
+
+	// If damage protection is enabled
+	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+		&& !getServer().getVersion().contains("1.8"))
+	    // Removes player's god mode
+	    p.setInvulnerable(false);
 
 	// Abort player's tasks
 	abortTasks(p);
@@ -348,9 +462,27 @@ public class Main extends JavaPlugin implements Listener {
 	return time;
     }
 
+    // Returns player specific teleport time
+    int getTeleportTime(Player p) {
+	// Gets default teleport time
+	int time = getConfig().getInt("teleport.time");
+
+	// Gets list of custom permissions
+	Set<String> list = getConfig().getConfigurationSection("permissions").getKeys(false);
+
+	// Loops through the list
+	for (String perm : list) {
+	    if (p.hasPermission("autoafk.custom." + perm))
+		time = getConfig().getInt("permissions." + perm + ".teleport");
+	    break;
+	}
+
+	return time + getAutoTime(p);
+    }
+
     // Returns player specific kick time
     int getKickTime(Player p) {
-	// Gets default auto time
+	// Gets default kick time
 	int time = getConfig().getInt("kick.time");
 
 	// Gets list of custom permissions
@@ -370,7 +502,7 @@ public class Main extends JavaPlugin implements Listener {
     void broadcast(Player p, String type) {
 	// Doesn't broadcast anything when player is vanished
 	if (isVanished(p)) {
-            return;
+	    return;
 	}
 
 	// Prepares the message
@@ -394,8 +526,8 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     // https://www.spigotmc.org/resources/supervanish-be-invisible.1331/
-    // This code is supported by SuperVanish, PremiumVanish, VanishNoPacket and a
-    // few more vanish plugins.
+    // This code is supported by SuperVanish, PremiumVanish, VanishNoPacket
+    // and a few more vanish plugins.
     private boolean isVanished(Player player) {
 	for (MetadataValue meta : player.getMetadata("vanished")) {
 	    if (meta.asBoolean())
@@ -412,159 +544,300 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
+	Player p = e.getPlayer();
+
 	// Remove player from minutes list
-	afkMinutes.remove(e.getPlayer());
+	afkMinutes.remove(p);
 
 	// Abort player's tasks
-	abortTasks(e.getPlayer());
+	abortTasks(p);
+
+	// When scoreboard tag changing is enabled
+	if (getConfig().getBoolean("playertag.enabled")) {
+	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Team tag = tags.getTeam(p.getName());
+	    tag.setPrefix("");
+	    tag.removeEntry(p.getName());
+
+	    for (Player players : getServer().getOnlinePlayers()) {
+		players.setScoreboard(tags);
+	    }
+	}
+
+	// If damage protection is enabled
+	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+		&& !getServer().getVersion().contains("1.8"))
+	    // Removes player's god mode
+	    p.setInvulnerable(false);
+    }
+
+    @EventHandler
+    public void onPlayerDamage(EntityDamageEvent e) {
+	// Player, config and version check
+	if (!(e.getEntity() instanceof Player) || !getConfig().getBoolean("protection.move")
+		|| !getServer().getVersion().contains("1.8"))
+	    return;
+
+	Player p = (Player) e.getEntity();
+
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(p.getWorld().getName()))
+	    return;
+
+	// AFK and permission check
+	if (afkList.containsKey(p) && !p.hasPermission("autoafk.protection.damage"))
+	    e.setCancelled(true);
     }
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.chat"))
 	    // Removes player from AFK
 	    getServer().getScheduler().runTask(this, new Runnable() {
 		@Override
 		public void run() {
-		    delAFK(e.getPlayer());
+		    if (afkList.containsKey(e.getPlayer()))
+			delAFK(e.getPlayer());
 		}
 	    });
     }
 
     @EventHandler
     public void onPlayerInteractEntity(PlayerInteractEntityEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.interact.entity"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerInteract(PlayerInteractEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.interact.anything"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerBedEnter(PlayerBedEnterEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bed-enter"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onChangedWorld(PlayerChangedWorldEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.world-change"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerEditBook(PlayerEditBookEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.book-edit"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerDropItem(PlayerDropItemEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.drop"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerPickupItem(PlayerPickupItemEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.pickup"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerItemBreak(PlayerItemBreakEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.break"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerShearEntity(PlayerShearEntityEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.shear"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerToggleFlight(PlayerToggleFlightEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.flight"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerToggleSprint(PlayerToggleSprintEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.sprint"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerToggleSneak(PlayerToggleSneakEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.sneak"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerUnleashEntity(PlayerUnleashEntityEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.unleash"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerBucketFill(PlayerBucketFillEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bucket.fill"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerBucketEmpty(PlayerBucketEmptyEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bucket.empty"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerMove(PlayerMoveEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
+	// If move protection is enabled and player doesn't have bypass permissions and
+	// player is in AFK mode
+	if (getConfig().getBoolean("protection.move") && !e.getPlayer().hasPermission("autoafk.protection.move")
+		&& afkList.containsKey(e.getPlayer())) {
+	    // Cancels the movement
+	    e.setCancelled(true);
+
+	    // Sends warning message
+	    e.getPlayer().sendMessage(getMessage("messages.move-protection"));
+
+	    return;
+	}
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.move"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 
     @EventHandler
     public void onPlayerExpChange(PlayerExpChangeEvent e) {
+	// World check
+	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
+	    return;
+
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.xp"))
 	    // Removes player from AFK
-	    delAFK(e.getPlayer());
+	    if (afkList.containsKey(e.getPlayer()))
+		delAFK(e.getPlayer());
     }
 }

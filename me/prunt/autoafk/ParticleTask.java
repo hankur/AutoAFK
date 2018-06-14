@@ -30,8 +30,8 @@ public class ParticleTask implements Runnable {
 	    ParticleEffect.valueOf(main.getConfig().getString("particles.type"))
 		    .send(main.getServer().getOnlinePlayers(), p.getLocation(), 0, 1, 0, 1, count);
 	} else {
-	    p.spawnParticle(Particle.valueOf(main.getConfig().getString("particles.type")), p.getLocation(), count, 0,
-		    1, 0);
+	    p.getWorld().spawnParticle(Particle.valueOf(main.getConfig().getString("particles.type")), p.getLocation(),
+		    count);
 	}
     }
 }
