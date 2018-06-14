@@ -1,3 +1,8 @@
+# Check out the default config: https://github.com/Prunt/AutoAFK/blob/master/config.yml
+#
+# Disable plugin in listed worlds
+disabled-worlds:
+- 'afk_world'
 # List of messages you can edit
 messages:
     # true - broadcasts AFK status updates to whole server
@@ -17,6 +22,10 @@ messages:
     # Message sent when anti-spam blocks the usage of /afk command
     # Variable %timeLeft% is supported
     anti-spam: '&cYou need to wait another %timeLeft% seconds before using this command again.'
+    # Message sent when move protection is enabled
+    move-protection: '&cYou can''t move when you''re in AFK mode. Please use /afk to exit AFK mode.'
+    # Message sent when teleport location was successfully saved
+    location-set: '&aTeleport location saved!'
 # Anti /afk spam options (doesn't affect automatic AFK mode)
 anti-spam:
     # Whether or not this feature is enabled
@@ -28,15 +37,28 @@ auto:
     # Whether or not automatic AFK mode is enabled
     # (AFK mode will still cancel if a player does something)
     enabled: true
-    # Default time in minutes after player is automatically put into AFK mode
+    # Time in minutes after player is automatically put into AFK mode
     time: 5
+# Options for automatic AFK teleport
+teleport:
+    # Whether or not players in AFK mode will be teleported somewhere
+    enabled: false
+    # Time in minutes player has to be in AFK mode in order to be automatically teleported (at least 1)
+    time: 5
+    # Location where to teleport the player (can be set using the command /autoafk set)
+    x: 0.0
+    y: 0.0
+    z: 0.0
+    yaw: 0.0
+    pitch: 0.0
+    world: world
 # Options for automatic AFK kick
 kick:
     # Whether or not automatic AFK kicking is enabled
     enabled: true
     # Whether or not to kick players only when server is full
     onlywhenfull: false
-    # Default time in minutes player has to be in AFK mode in order to be kicked (at least 1)
+    # Time in minutes player has to be in AFK mode in order to be kicked (at least 1)
     time: 10
     # true - commands below are executed by console
     # false - commands below are executed by the player
@@ -46,10 +68,23 @@ kick:
     commands: 
       - 'kick %player% You were kicked for being AFK.'
       - 'say %player% was kicked for AFK!'
+# Options for AFK player protection
+protection:
+    # Whether or not players in AFK mode can move
+    move: false
+    # Whether or not players in AFK mode can take damage
+    damage: false
 # Options for tablist prefix
 tablist:
     # By default, tablist prefix is enabled
     enabled: true
+    # Prefix itself
+    prefix: '[AFK] '
+# Options for player tag
+# WARNING: THIS OPTION CAN CREATE ISSUES WHEN ANOTHER SCOREBOARD PLUGIN IS IN USE
+playertag:
+    # By default, player tag prefix is disabled
+    enabled: false
     # Prefix itself
     prefix: '[AFK] '
 # Options for AFK particles - ParticleAPI REQUIRED FOR 1.8
@@ -62,7 +97,7 @@ particles:
     type: CLOUD
     # How many particles are created at once
     count: 3
-# Options for automatic AFK countdown - TitleAPI REQUIRED FOR 1.10 OR LOWER
+# Options for automatic AFK and kick countdown - TitleAPI REQUIRED FOR 1.10 OR LOWER
 countdown:
     # By default, countdown is enabled
     enabled: true
@@ -71,7 +106,9 @@ countdown:
     title: '&a&l%count%'
     # Subtitle message sent on countdown (can be left empty: '')
     # Variable %count% is supported
-    subtitle: '&bDo something or you will be put into AFK mode!'
+    subtitle:
+        afk: '&bDo something or you will be put into AFK mode!'
+        kick: '&bDo something or you will be kicked from the server!'
     # Sound used in countdown: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
     # Be sure to check if the sound exists in the version you use
     sound: BLOCK_NOTE_PLING
@@ -83,6 +120,8 @@ permissions:
     vip:
         # Time in minutes after player with perm autoafk.custom.vip is automatically put into AFK mode
         auto: 10
+        # Time in minutes after AFK player with perm autoafk.custom.vip is teleported to predefined location
+        teleport: 5
         # Time in minutes after AFK player with perm autoafk.custom.vip is kicked from server
         kick: 10
 # Toggleable events which remove AFK from player
