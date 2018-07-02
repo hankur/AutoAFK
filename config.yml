@@ -10,10 +10,10 @@ messages:
     # private - sends AFK status updates only to the player
     broadcast: true
     # Message sent when player is put into AFK mode
-    # Variable %player% is supported
+    # Variables %player% and %displayname% are supported
     afk-on: '&7%player% is now AFK!'
     # Message sent when player is active againg
-    # Variable %player% is supported
+    # Variables %player% and %displayname% are supported
     afk-off: '&7%player% is now back!'
     # Message sent after successful reload
     reload: '&aConfiguration file reloaded!'
@@ -26,6 +26,8 @@ messages:
     move-protection: '&cYou can''t move when you''re in AFK mode. Please use /afk to exit AFK mode.'
     # Message sent when teleport location was successfully saved
     location-set: '&aTeleport location saved!'
+    # Message send when player was teleported due to AFK
+    teleport: '&cYou were teleported to safety because you were in AFK mode for too long.' 
 # Anti /afk spam options (doesn't affect automatic AFK mode)
 anti-spam:
     # Whether or not this feature is enabled
@@ -74,6 +76,12 @@ protection:
     move: false
     # Whether or not players in AFK mode can take damage
     damage: false
+# Options to ignore AFK players for
+ignore:
+    # Whether or not players in AFK mode should be exempt from sleeping to skip the night
+    sleep: true
+    # Whether or not AFK messages for dead players should be ignored
+    dead: false
 # Options for tablist prefix
 tablist:
     # By default, tablist prefix is enabled
