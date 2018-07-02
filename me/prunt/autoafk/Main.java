@@ -54,6 +54,8 @@ public class Main extends JavaPlugin implements Listener {
     HashMap<Player, String> oldPlayerListNames = new HashMap<>();
     // Anti /afk spam
     HashMap<Player, Long> lastUsed = new HashMap<>();
+    // Last teleport locations
+    HashMap<Player, Location> lastLocs = new HashMap<>();
 
     // Debug switch
     boolean debug = false;
@@ -155,6 +157,9 @@ public class Main extends JavaPlugin implements Listener {
 	if (debug)
 	    System.out.println("9 " + p.getName());
 
+	// Save last location
+	lastLocs.put(p, p.getLocation());
+
 	// Define the location parameters
 	double x = getConfig().getDouble("teleport.x");
 	double y = getConfig().getDouble("teleport.y");
@@ -165,6 +170,9 @@ public class Main extends JavaPlugin implements Listener {
 
 	// Teleport the player
 	p.teleport(new Location(getServer().getWorld(world), x, y, z, yaw, pitch));
+
+	// Send a teleportation message
+	p.sendMessage(getMessage("messages.teleport"));
     }
 
     void kick(Player p) {
@@ -349,6 +357,12 @@ public class Main extends JavaPlugin implements Listener {
 	    p.setPlayerListName(getMessage("tablist.prefix") + p.getName());
 	}
 
+	// When ignore sleep mode is enabled
+	if (getConfig().getBoolean("ignore.sleep")) {
+	    // Exempts player from sleeping
+	    p.setSleepingIgnored(true);
+	}
+
 	// When scoreboard tag changing is enabled
 	if (getConfig().getBoolean("playertag.enabled")) {
 	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
@@ -392,6 +406,18 @@ public class Main extends JavaPlugin implements Listener {
 
 	    // Broadcasts the message
 	    broadcast(p, "messages.afk-off");
+	}
+
+	// Teleport player back to previous location
+	if (getConfig().getBoolean("teleport.enabled") && lastLocs.containsKey(p)) {
+	    p.teleport(lastLocs.get(p));
+	    lastLocs.remove(p);
+	}
+
+	// When ignore sleep mode is enabled
+	if (getConfig().getBoolean("ignore.sleep")) {
+	    // Reverses player's exempt from sleeping
+	    p.setSleepingIgnored(false);
 	}
 
 	// When scoreboard tag changing is enabled
@@ -501,12 +527,16 @@ public class Main extends JavaPlugin implements Listener {
     // Broadcasts specified message
     void broadcast(Player p, String type) {
 	// Doesn't broadcast anything when player is vanished
-	if (isVanished(p)) {
+	if (isVanished(p))
 	    return;
-	}
+
+	// Doesn't broadcast anything when player is dead
+	if (getConfig().getBoolean("ignore.dead") && p.isDead())
+	    return;
 
 	// Prepares the message
-	String msg = getMessage(type).replaceAll("%player%", p.getName());
+	String msg = getMessage(type).replaceAll("%player%", p.getName()).replaceAll("%displayname%",
+		p.getDisplayName());
 
 	// If messages.broadcast option is true
 	if (getConfig().getString("messages.broadcast").equalsIgnoreCase("true")) {
@@ -553,7 +583,7 @@ public class Main extends JavaPlugin implements Listener {
 	abortTasks(p);
 
 	// When scoreboard tag changing is enabled
-	if (getConfig().getBoolean("playertag.enabled")) {
+	if (getConfig().getBoolean("playertag.enabled") && afkList.containsKey(p)) {
 	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
 	    Team tag = tags.getTeam(p.getName());
 	    tag.setPrefix("");
@@ -566,9 +596,12 @@ public class Main extends JavaPlugin implements Listener {
 
 	// If damage protection is enabled
 	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
-		&& !getServer().getVersion().contains("1.8"))
+		&& !getServer().getVersion().contains("1.8") && afkList.containsKey(p))
 	    // Removes player's god mode
 	    p.setInvulnerable(false);
+
+	// Remove from AFK list
+	afkList.remove(p);
     }
 
     @EventHandler
