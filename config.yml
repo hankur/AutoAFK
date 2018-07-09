@@ -72,9 +72,9 @@ kick:
       - 'say %player% was kicked for AFK!'
 # Options for AFK player protection
 protection:
-    # Whether or not players in AFK mode can move
+    # Whether or not players in AFK mode should be protected from moving
     move: false
-    # Whether or not players in AFK mode can take damage
+    # Whether or not players in AFK mode should be protected from taking damage
     damage: false
 # Options to ignore AFK players for
 ignore:
