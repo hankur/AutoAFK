@@ -89,7 +89,6 @@ tablist:
     # Prefix itself
     prefix: '[AFK] '
 # Options for player tag
-# WARNING: THIS OPTION CAN CREATE ISSUES WHEN ANOTHER SCOREBOARD PLUGIN IS IN USE
 playertag:
     # By default, player tag prefix is disabled
     enabled: false
