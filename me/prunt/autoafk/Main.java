@@ -49,8 +49,8 @@ public class Main extends JavaPlugin implements Listener {
     HashMap<Player, ParticleTask> afkList = new HashMap<>();
     // Stores CountdownTask list
     HashMap<Player, CountdownTask> countList = new HashMap<>();
-    // Stores old playerlist names that have been replaced with [AFK] tag +
-    // playerlist name
+    // Stores old playerlist names that have been replaced with
+    // [AFK] tag + playerlist name
     HashMap<Player, String> oldPlayerListNames = new HashMap<>();
     // Anti /afk spam
     HashMap<Player, Long> lastUsed = new HashMap<>();
@@ -65,7 +65,10 @@ public class Main extends JavaPlugin implements Listener {
 	// In case it's a reload
 	afkMinutes.clear();
 	afkList.clear();
+	countList.clear();
 	oldPlayerListNames.clear();
+	lastUsed.clear();
+	lastLocs.clear();
 	for (Player p : getServer().getOnlinePlayers()) {
 	    afkMinutes.put(p, 0);
 	}
@@ -151,6 +154,14 @@ public class Main extends JavaPlugin implements Listener {
 		}
 	    }
 	}, 1200, 1200);
+    }
+
+    @Override
+    public void onDisable() {
+	// Remove AFK modes
+	for (Player p : getServer().getOnlinePlayers()) {
+	    delAFK(p);
+	}
     }
 
     private void teleport(Player p) {
@@ -354,7 +365,7 @@ public class Main extends JavaPlugin implements Listener {
 	    oldPlayerListNames.put(p, p.getPlayerListName());
 
 	    // Adds prefix in front of the tablist name
-	    p.setPlayerListName(getMessage("tablist.prefix") + p.getName());
+	    p.setPlayerListName(getMessage("tablist.prefix") + p.getPlayerListName());
 	}
 
 	// When ignore sleep mode is enabled
@@ -386,14 +397,14 @@ public class Main extends JavaPlugin implements Listener {
 	    // Makes player invulnerable
 	    p.setInvulnerable(true);
 
-	// initiate particles
+	// Initiate particles
 	ParticleTask task = null;
 	if (getConfig().getBoolean("particles.enabled")) {
 	    task = new ParticleTask(this, p);
 	    task.setId(getServer().getScheduler().scheduleSyncRepeatingTask(this, task, 0, 20));
 	}
 
-	// add to list
+	// Add to list
 	afkList.put(p, task);
     }
 
@@ -449,10 +460,9 @@ public class Main extends JavaPlugin implements Listener {
 	// If player is in AFK
 	if (afkList.containsKey(p)) {
 	    // If particle task is running
-	    if (afkList.get(p) != null) {
+	    if (afkList.get(p) != null)
 		// Cancels particle task
 		getServer().getScheduler().cancelTask(afkList.get(p).getId());
-	    }
 
 	    // Removes from AFK list
 	    afkList.remove(p);
@@ -461,10 +471,9 @@ public class Main extends JavaPlugin implements Listener {
 	// If player is in countdown list
 	if (countList.containsKey(p)) {
 	    // If countdown is running
-	    if (countList.get(p) != null) {
+	    if (countList.get(p) != null)
 		// Abort counting
 		getServer().getScheduler().cancelTask(countList.get(p).getId());
-	    }
 
 	    // Removes from countdown list
 	    countList.remove(p);
@@ -576,32 +585,28 @@ public class Main extends JavaPlugin implements Listener {
     public void onPlayerQuit(PlayerQuitEvent e) {
 	Player p = e.getPlayer();
 
-	// Remove player from minutes list
-	afkMinutes.remove(p);
+	delAFK(p);
 
-	// Abort player's tasks
-	abortTasks(p);
-
-	// When scoreboard tag changing is enabled
-	if (getConfig().getBoolean("playertag.enabled") && afkList.containsKey(p)) {
-	    Scoreboard tags = p.getScoreboard();
-	    Team tag = tags.getTeam(p.getName());
-	    tag.setPrefix("");
-	    tag.removeEntry(p.getName());
-
-	    for (Player players : getServer().getOnlinePlayers()) {
-		players.setScoreboard(tags);
-	    }
-	}
-
-	// If damage protection is enabled
-	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
-		&& !getServer().getVersion().contains("1.8") && afkList.containsKey(p))
-	    // Removes player's god mode
-	    p.setInvulnerable(false);
-
-	// Remove from AFK list
-	afkList.remove(p);
+	/*
+	 * // Remove player from minutes list afkMinutes.remove(p);
+	 * 
+	 * // When scoreboard tag changing is enabled if
+	 * (getConfig().getBoolean("playertag.enabled") && afkList.containsKey(p)) {
+	 * Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	 * Team tag = tags.getTeam(p.getName()); tag.setPrefix("");
+	 * tag.removeEntry(p.getName());
+	 * 
+	 * for (Player players : getServer().getOnlinePlayers()) {
+	 * players.setScoreboard(tags); } }
+	 * 
+	 * // If damage protection is enabled if
+	 * (getConfig().getBoolean("protection.move") &&
+	 * !p.hasPermission("autoafk.protection.damage") &&
+	 * !getServer().getVersion().contains("1.8") && afkList.containsKey(p)) //
+	 * Removes player's god mode p.setInvulnerable(false);
+	 * 
+	 * // Abort player's tasks and remove the AFK mode abortTasks(p);
+	 */
     }
 
     @EventHandler
@@ -680,7 +685,7 @@ public class Main extends JavaPlugin implements Listener {
     }
 
     @EventHandler
-    public void onChangedWorld(PlayerChangedWorldEvent e) {
+    public void onPlayerChangedWorld(PlayerChangedWorldEvent e) {
 	// World check
 	if (getConfig().getStringList("disabled-worlds").contains(e.getPlayer().getWorld().getName()))
 	    return;
