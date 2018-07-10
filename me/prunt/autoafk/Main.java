@@ -160,7 +160,7 @@ public class Main extends JavaPlugin implements Listener {
     public void onDisable() {
 	// Remove AFK modes
 	for (Player p : getServer().getOnlinePlayers()) {
-	    delAFK(p);
+	    delAFK(p, true);
 	}
     }
 
@@ -408,46 +408,51 @@ public class Main extends JavaPlugin implements Listener {
 	afkList.put(p, task);
     }
 
-    // Removes player from AFK mode
     void delAFK(Player p) {
+	delAFK(p, false);
+    }
+
+    // Removes player from AFK mode
+    void delAFK(Player p, boolean silent) {
 	// If player is in AFK mode
 	if (afkList.containsKey(p)) {
 	    // Resets the playerlist name
 	    p.setPlayerListName(oldPlayerListNames.get(p));
 
-	    // Broadcasts the message
-	    broadcast(p, "messages.afk-off");
-	}
+	    if (!silent)
+		// Broadcasts the message
+		broadcast(p, "messages.afk-off");
 
-	// Teleport player back to previous location
-	if (getConfig().getBoolean("teleport.enabled") && lastLocs.containsKey(p)) {
-	    p.teleport(lastLocs.get(p));
-	    lastLocs.remove(p);
-	}
-
-	// When ignore sleep mode is enabled
-	if (getConfig().getBoolean("ignore.sleep")) {
-	    // Reverses player's exempt from sleeping
-	    p.setSleepingIgnored(false);
-	}
-
-	// When scoreboard tag changing is enabled
-	if (getConfig().getBoolean("playertag.enabled")) {
-	    Scoreboard tags = p.getScoreboard();
-	    Team tag = tags.getTeam(p.getName());
-	    tag.setPrefix("");
-	    tag.removeEntry(p.getName());
-
-	    for (Player players : getServer().getOnlinePlayers()) {
-		players.setScoreboard(tags);
+	    // Teleport player back to previous location
+	    if (getConfig().getBoolean("teleport.enabled") && lastLocs.containsKey(p)) {
+		p.teleport(lastLocs.get(p));
+		lastLocs.remove(p);
 	    }
-	}
 
-	// If damage protection is enabled
-	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
-		&& !getServer().getVersion().contains("1.8"))
-	    // Removes player's god mode
-	    p.setInvulnerable(false);
+	    // When ignore sleep mode is enabled
+	    if (getConfig().getBoolean("ignore.sleep")) {
+		// Reverses player's exempt from sleeping
+		p.setSleepingIgnored(false);
+	    }
+
+	    // When scoreboard tag changing is enabled
+	    if (getConfig().getBoolean("playertag.enabled")) {
+		Scoreboard tags = p.getScoreboard();
+		Team tag = tags.getTeam(p.getName());
+		tag.setPrefix("");
+		tag.removeEntry(p.getName());
+
+		for (Player players : getServer().getOnlinePlayers()) {
+		    players.setScoreboard(tags);
+		}
+	    }
+
+	    // If damage protection is enabled
+	    if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+		    && !getServer().getVersion().contains("1.8"))
+		// Removes player's god mode
+		p.setInvulnerable(false);
+	}
 
 	// Abort player's tasks
 	abortTasks(p);
@@ -583,30 +588,7 @@ public class Main extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent e) {
-	Player p = e.getPlayer();
-
-	delAFK(p);
-
-	/*
-	 * // Remove player from minutes list afkMinutes.remove(p);
-	 * 
-	 * // When scoreboard tag changing is enabled if
-	 * (getConfig().getBoolean("playertag.enabled") && afkList.containsKey(p)) {
-	 * Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
-	 * Team tag = tags.getTeam(p.getName()); tag.setPrefix("");
-	 * tag.removeEntry(p.getName());
-	 * 
-	 * for (Player players : getServer().getOnlinePlayers()) {
-	 * players.setScoreboard(tags); } }
-	 * 
-	 * // If damage protection is enabled if
-	 * (getConfig().getBoolean("protection.move") &&
-	 * !p.hasPermission("autoafk.protection.damage") &&
-	 * !getServer().getVersion().contains("1.8") && afkList.containsKey(p)) //
-	 * Removes player's god mode p.setInvulnerable(false);
-	 * 
-	 * // Abort player's tasks and remove the AFK mode abortTasks(p);
-	 */
+	delAFK(e.getPlayer(), true);
     }
 
     @EventHandler
