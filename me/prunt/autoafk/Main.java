@@ -365,7 +365,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	// When scoreboard tag changing is enabled
 	if (getConfig().getBoolean("playertag.enabled")) {
-	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Scoreboard tags = p.getScoreboard();
 	    Team tag = tags.getTeam(p.getName());
 	    if (tag == null)
 		tag = tags.registerNewTeam(p.getName());
@@ -422,7 +422,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	// When scoreboard tag changing is enabled
 	if (getConfig().getBoolean("playertag.enabled")) {
-	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Scoreboard tags = p.getScoreboard();
 	    Team tag = tags.getTeam(p.getName());
 	    tag.setPrefix("");
 	    tag.removeEntry(p.getName());
@@ -584,7 +584,7 @@ public class Main extends JavaPlugin implements Listener {
 
 	// When scoreboard tag changing is enabled
 	if (getConfig().getBoolean("playertag.enabled") && afkList.containsKey(p)) {
-	    Scoreboard tags = getServer().getScoreboardManager().getMainScoreboard();
+	    Scoreboard tags = p.getScoreboard();
 	    Team tag = tags.getTeam(p.getName());
 	    tag.setPrefix("");
 	    tag.removeEntry(p.getName());
