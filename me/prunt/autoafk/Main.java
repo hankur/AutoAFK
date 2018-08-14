@@ -414,6 +414,9 @@ public class Main extends JavaPlugin implements Listener {
 
     // Removes player from AFK mode
     void delAFK(Player p, boolean silent) {
+	if (debug)
+	    System.out.println(p.getName() + " d " + silent);
+
 	// If player is in AFK mode
 	if (afkList.containsKey(p)) {
 	    // Resets the playerlist name
@@ -621,8 +624,7 @@ public class Main extends JavaPlugin implements Listener {
 	    getServer().getScheduler().runTask(this, new Runnable() {
 		@Override
 		public void run() {
-		    if (afkList.containsKey(e.getPlayer()))
-			delAFK(e.getPlayer());
+		    delAFK(e.getPlayer());
 		}
 	    });
     }
@@ -636,8 +638,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.interact.entity"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -649,8 +650,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.interact.anything"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -662,8 +662,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bed-enter"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -675,8 +674,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.world-change"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -688,8 +686,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.book-edit"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -701,8 +698,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.drop"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -714,8 +710,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.pickup"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -727,8 +722,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.item.break"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -740,8 +734,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.shear"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -753,8 +746,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.flight"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -766,8 +758,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.sprint"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -779,8 +770,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.toggle.sneak"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -792,8 +782,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.unleash"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -805,8 +794,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bucket.fill"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -818,8 +806,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.bucket.empty"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -844,8 +831,7 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.move"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 
     @EventHandler
@@ -857,7 +843,6 @@ public class Main extends JavaPlugin implements Listener {
 	// If this listener is enabled
 	if (getConfig().getBoolean("listeners.xp"))
 	    // Removes player from AFK
-	    if (afkList.containsKey(e.getPlayer()))
-		delAFK(e.getPlayer());
+	    delAFK(e.getPlayer());
     }
 }

@@ -118,7 +118,7 @@ countdown:
         kick: '&bDo something or you will be kicked from the server!'
     # Sound used in countdown: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html
     # Be sure to check if the sound exists in the version you use
-    sound: BLOCK_NOTE_PLING
+    sound: BLOCK_NOTE_BLOCK_PLING
 # Permission based auto/kick times
 # List is in priority order: first items override others if player has multiple permissions from this list
 # Name of the section is the ending of a permission required for it (autoafk.custom.x)

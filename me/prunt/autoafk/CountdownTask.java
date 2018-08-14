@@ -1,5 +1,7 @@
 package me.prunt.autoafk;
 
+import java.util.logging.Level;
+
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
@@ -29,8 +31,25 @@ public class CountdownTask implements Runnable {
 
     @Override
     public void run() {
+	if (main.debug)
+	    System.out.println(this.p.getName() + " c" + this.i);
+
 	// when it's time to put into afk or kick
 	if (this.i == 0) {
+	    Sound sound = null;
+	    try {
+		sound = Sound.valueOf(main.getConfig().getString("countdown.sound"));
+	    } catch (IllegalArgumentException e) {
+		main.getLogger().log(Level.WARNING,
+			"Couldn't find a sound called " + main.getConfig().getString("countdown.sound"), sound);
+
+		if (main.getServer().getVersion().contains("1.13")) {
+		    sound = Sound.valueOf("BLOCK_NOTE_BLOCK_PLING");
+		} else {
+		    sound = Sound.valueOf("BLOCK_NOTE_PLING");
+		}
+	    }
+
 	    // title and sound
 	    if (main.getServer().getVersion().contains("1.10") || main.getServer().getVersion().contains("1.9")
 		    || main.getServer().getVersion().contains("1.8")) {
@@ -39,7 +58,7 @@ public class CountdownTask implements Runnable {
 	    } else {
 		p.sendTitle("", main.getMessage("messages.afk-on").replaceAll("%player%", p.getName()), 0, 40, 20);
 	    }
-	    p.playSound(p.getLocation(), Sound.valueOf(main.getConfig().getString("countdown.sound")), 1, 1);
+	    p.playSound(p.getLocation(), sound, 1, 1);
 
 	    if (this.t == "afk") {
 		// put into afk
