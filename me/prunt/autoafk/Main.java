@@ -392,7 +392,7 @@ public class Main extends JavaPlugin implements Listener {
 	broadcast(p, "messages.afk-on");
 
 	// If damage protection is enabled
-	if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+	if (getConfig().getBoolean("protection.damage") && !p.hasPermission("autoafk.protection.damage")
 		&& !getServer().getVersion().contains("1.8"))
 	    // Makes player invulnerable
 	    p.setInvulnerable(true);
@@ -597,7 +597,7 @@ public class Main extends JavaPlugin implements Listener {
     @EventHandler
     public void onPlayerDamage(EntityDamageEvent e) {
 	// Player, config and version check
-	if (!(e.getEntity() instanceof Player) || !getConfig().getBoolean("protection.move")
+	if (!(e.getEntity() instanceof Player) || !getConfig().getBoolean("protection.damage")
 		|| !getServer().getVersion().contains("1.8"))
 	    return;
 
