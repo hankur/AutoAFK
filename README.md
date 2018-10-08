@@ -6,7 +6,7 @@ Feel free to contribute, since I no longer actively develop this plugin.
 ## Description
 This simple AFK plugin aims to be very lightweight and easy to use. It allows players to put themselves in and out of AFK mode. There is also an option to set players into AFK mode automatically after configurable amount (permission based) of inactivity, which will be cancelled it if they become active again. Automatic teleport to specified location and kick after configurable time (permission based) is also built-in. AFK players can optionally be protected from moving or taking damage. Players in AFK mode can also have prefixes in display name, TAB name and player tag, they can also have particle effects. All messages and listeners are configurable! It does support /reload, but full restart is preferable.
 
-**This plugin isn't supported anymore, but should work for versions 1.8.x to 1.13. For 1.13.x and forward, please consider using AdvancedAFK.**
+**This plugin isn't supported anymore, but should work for versions 1.8.x to 1.13. For 1.13.x and forward, please consider using [AdvancedAFK](https://www.spigotmc.org/resources/advancedafk.60761/).**
 
 ## Dependencies
 This plugin requires Java 8 and Spigot/Bukkit/Paper 1.8+.
