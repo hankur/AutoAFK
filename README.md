@@ -3,6 +3,8 @@ Very simple plugin that implements AFK mode!
 
 Feel free to contribute, since I no longer actively develop this plugin.
 
+Available on BukkitDev: https://dev.bukkit.org/projects/autoafk
+
 ## Description
 This simple AFK plugin aims to be very lightweight and easy to use. It allows players to put themselves in and out of AFK mode. There is also an option to set players into AFK mode automatically after configurable amount (permission based) of inactivity, which will be cancelled it if they become active again. Automatic teleport to specified location and kick after configurable time (permission based) is also built-in. AFK players can optionally be protected from moving or taking damage. Players in AFK mode can also have prefixes in display name, TAB name and player tag, they can also have particle effects. All messages and listeners are configurable! It does support /reload, but full restart is preferable.
 
