@@ -451,7 +451,7 @@ public class Main extends JavaPlugin implements Listener {
 	    }
 
 	    // If damage protection is enabled
-	    if (getConfig().getBoolean("protection.move") && !p.hasPermission("autoafk.protection.damage")
+	    if (getConfig().getBoolean("protection.damage") && !p.hasPermission("autoafk.protection.damage")
 		    && !getServer().getVersion().contains("1.8"))
 		// Removes player's god mode
 		p.setInvulnerable(false);
